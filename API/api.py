@@ -36,7 +36,7 @@ class ingest:
             track_id = params.track_id
         if params.length is None or params.codever is None:
             return web.webapi.BadRequest()
-        
+
         # First see if this is a compressed code
         if re.match('[A-Za-z\/\+\_\-]', params.fp_code) is not None:
            code_string = fp.decode_code_string(params.fp_code)
@@ -45,7 +45,7 @@ class ingest:
         else:
             code_string = params.fp_code
 
-        data = {"track_id": track_id, 
+        data = {"track_id": track_id,
                 "fp": code_string,
                 "length": params.length,
                 "codever": params.codever }
@@ -55,21 +55,23 @@ class ingest:
         fp.ingest(data, do_commit=True, local=False)
 
         return json.dumps({"track_id":track_id, "status":"ok"})
-        
-    
+
+
 class query:
     def POST(self):
         return self.GET()
-        
+
     def GET(self):
         stuff = web.input(fp_code="")
         response = fp.best_match_for_query(stuff.fp_code)
+        track_info = {key: value for key, value in response.metadata.items()
+                     if key != "import_date"}
         return json.dumps({"ok":True, "query":stuff.fp_code, "message":response.message(), "match":response.match(), "score":response.score, \
-                        "qtime":response.qtime, "track_id":response.TRID, "total_time":response.total_time})
+                         "qtime":response.qtime, "track_id":response.TRID, "total_time":response.total_time, "track_info":track_info})
 
 
 application = web.application(urls, globals())#.wsgifunc()
-        
+
 if __name__ == "__main__":
     application.run()
 
