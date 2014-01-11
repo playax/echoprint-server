@@ -255,6 +255,11 @@ def best_match_for_query(code_string, elbow=10, local=False):
     else:
         # If the actual score went down it still could be close enough, so check for that
         if actual_score_top_score > (original_scores[actual_score_top_track_id] / 4):
+
+            #first and second place with same score means that probably it is the same track. return the first then
+            if (actual_score_top_score == actual_score_2nd_score):
+                return Response(Response.MULTIPLE_GOOD_MATCH_HISTOGRAM_DECREASED, TRID=trackid, score=actual_score_top_score, qtime=response.header["QTime"], tic=tic, metadata=meta)
+
             if (actual_score_top_score - actual_score_2nd_score) >= (actual_score_top_score / 3):  # for examples [10,4], 10-4 = 6, which >= 5, so OK
                 return Response(Response.MULTIPLE_GOOD_MATCH_HISTOGRAM_DECREASED, TRID=trackid, score=actual_score_top_score, qtime=response.header["QTime"], tic=tic, metadata=meta)
             else:
