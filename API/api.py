@@ -55,8 +55,11 @@ class ingest:
 
         return json.dumps({"track_id":track_id, "status":"ok"})
 
-
 class query:
+    def DELETE(self):
+        params = web.input(track_id="")
+        fp.delete(params.track_id.encode("utf-8"))
+
     def POST(self):
         return self.GET()
 
