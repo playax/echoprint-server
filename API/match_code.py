@@ -4,24 +4,8 @@ try:
     import json
 except ImportError:
     import simplejson as json
-import solr
 import fp
-import fileinput
 from threading import Thread
-
-class Unbuffered:
-   def __init__(self, stream):
-       self.stream = stream
-   def write(self, data):
-       self.stream.write(data)
-       self.stream.flush()
-   def __getattr__(self, attr):
-       return getattr(self.stream, attr)
-
-import sys
-sys.stdout=Unbuffered(sys.stdout)
-sys.stdin=Unbuffered(sys.stdin)
-
 
 def match(fileName,code):
     response = fp.best_match_for_query(code)
@@ -37,6 +21,4 @@ def match(fileName,code):
 while(True):
     line = sys.stdin.readline()
     (fileName, code) = line.rstrip().split("|")
-    # match(fileName, code)
-    # print code
     Thread(target=match, args=[fileName,code]).start()
