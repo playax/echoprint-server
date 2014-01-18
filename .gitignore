@@ -1,0 +1,5 @@
+solr/solr/logs/
+solr/solr/data/
+*.pyc
+*.swp
+*.log
