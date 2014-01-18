@@ -73,6 +73,7 @@
   <lib dir="../../contrib/clustering/lib/" />
   <lib dir="../../contrib/velocity/lib" />
   -->
+  <lib dir="../extra-libs" />
 
   <!-- When a regex is specified in addition to a directory, only the
        files in that directory which completely match the regex
@@ -1479,8 +1480,8 @@
     -->
     <!-- The solr.velocity.enabled flag is used by Solr's test cases so that this response writer is not
          loaded (causing an error if contrib/velocity has not been built fully) -->
-    <queryResponseWriter name="velocity" class="solr.VelocityResponseWriter" enable="${solr.velocity.enabled:true}"/>
-
+  <!--  <queryResponseWriter name="velocity" class="solr.VelocityResponseWriter" enable="${solr.velocity.enabled:true}"/>
+-->
 
     <!-- XSLT response writer transforms the XML output by any xslt file found
        in Solr's conf/xslt directory.  Changes to xslt files are checked for
