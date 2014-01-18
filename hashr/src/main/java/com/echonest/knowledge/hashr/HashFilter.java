@@ -1,13 +1,13 @@
 package com.echonest.knowledge.hashr;
 
+import java.io.IOException;
+
 import org.apache.lucene.analysis.TokenFilter;
 import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
-import org.apache.lucene.analysis.tokenattributes.TermAttribute;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
 
 /**
  *
@@ -17,16 +17,16 @@ public class HashFilter extends TokenFilter {
     protected final static Logger log = LoggerFactory.getLogger(
             HashFilter.class);
 
-    private TermAttribute termAtt;
+	private final CharTermAttribute termAtt;
 
-    private OffsetAttribute offAtt;
+    private final OffsetAttribute offAtt;
 
     private int prevOff;
 
     public HashFilter(TokenStream input) {
         super(input);
-        termAtt = (TermAttribute) addAttribute(TermAttribute.class);
-        offAtt = (OffsetAttribute) addAttribute(OffsetAttribute.class);
+        termAtt = addAttribute(CharTermAttribute.class);
+        offAtt = addAttribute(OffsetAttribute.class);
     }
 
     @Override
@@ -41,7 +41,7 @@ public class HashFilter extends TokenFilter {
                 //
                 // Parse the position from the next token.  Wasteful, but what you
                 // gonna do, unless we want to implement our own parseint.
-                String ps = termAtt.term();
+                String ps = termAtt.toString();
                 int posn;
                 try {
                     posn = Integer.parseInt(ps);

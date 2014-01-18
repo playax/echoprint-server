@@ -1,8 +1,17 @@
 package com.echonest.knowledge.hashr;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.PriorityQueue;
+import java.util.Set;
+import java.util.logging.Logger;
+
+import org.apache.lucene.index.AtomicReaderContext;
+import org.apache.lucene.index.DocsEnum;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.IndexReaderContext;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.index.TermDocs;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.SolrParams;
@@ -14,13 +23,6 @@ import org.apache.solr.search.DocList;
 import org.apache.solr.search.DocSlice;
 import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.util.SolrPluginUtils;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.PriorityQueue;
-import java.util.Set;
-import java.util.logging.Logger;
 
 /**
  * A query component that takes a number of fingerprint hashes as query terms
@@ -44,7 +46,8 @@ public class HashQueryComponent extends SearchComponent {
         String fl = params.get(CommonParams.FL);
         int fieldFlags = 0;
         if(fl != null) {
-            fieldFlags |= SolrPluginUtils.setReturnFields(fl, rsp);
+        	//commented for solr4, maybe needs FIX
+        	//            fieldFlags |= SolrPluginUtils.setReturnFields(fl, rsp);
 
             //
             // We'll always get the score, since that's what we're interested in
@@ -101,9 +104,8 @@ public class HashQueryComponent extends SearchComponent {
         rb.setResult(qr);
         rsp.add("response", rb.getResults().docList);
         rsp.getToLog().add("hits", rb.getResults().docList.matches());
-        
-        SolrPluginUtils.optimizePreFetchDocs(rb.getResults().docList, rb.
-                getQuery(), req, rsp);
+
+        SolrPluginUtils.optimizePreFetchDocs(rb, rb.getResults().docList, rb.getQuery(), req, rsp);
     }
 
     /**
@@ -179,21 +181,18 @@ public class HashQueryComponent extends SearchComponent {
         int[] alld = new int[2048];
         int base = 0;
         int nHits = 0;
-        for(IndexReader sub : reader.getSequentialSubReaders()) {
+		    for (IndexReaderContext sub : reader.getContext().children()) {
             int p = 0;
             for(String t : termSet) {
-                TermDocs td = sub.termDocs(new Term("fp", t));
-                int pos = td.read(docs, freqs);
-                while(pos != 0) {
-                    for(int i = 0; i < pos; i++) {
-                        if(p >= alld.length) {
-                            alld = Arrays.copyOf(alld, alld.length * 2);
-                        }
-                        alld[p++] = docs[i];
-                    }
-                    pos = td.read(docs, freqs);
-                }
-                td.close();
+            	  DocsEnum de = ((AtomicReaderContext) sub).reader().termDocsEnum(new Term("fp", t));
+            	  int doc;
+            	  while((doc = de.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
+                  if(p >= alld.length) {
+                    alld = Arrays.copyOf(alld, alld.length * 2);
+                  }
+                  alld[p++] = de.docID();
+            	  }
+                ((AtomicReaderContext) sub).reader().close();
             }
 
             //
@@ -218,7 +217,7 @@ public class HashQueryComponent extends SearchComponent {
                 // Handle the last document that was collected.
                 heapCheck(h, hsize, curr+base, count);
             }
-            base += sub.maxDoc();
+            base += ((AtomicReaderContext) sub).reader().maxDoc();
         }
 
         int outSize = Math.min(hsize, h.size());
@@ -240,10 +239,11 @@ public class HashQueryComponent extends SearchComponent {
                 + "returning the documents with the most occurrences";
     }
 
-    @Override
-    public String getSourceId() {
-        return "HashQueryComponent";
-    }
+	// commented because of solr4. Maybe will get error. If so, FIX
+	// @Override
+	// public String getSourceId() {
+	// return "HashQueryComponent";
+	// }
 
     @Override
     public String getSource() {
@@ -282,7 +282,8 @@ public class HashQueryComponent extends SearchComponent {
             this.doc = doc;
         }
 
-        public int compareTo(DocTermCount o) {
+        @Override
+				public int compareTo(DocTermCount o) {
             return count - o.count;
         }
     }

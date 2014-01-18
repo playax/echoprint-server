@@ -24,7 +24,7 @@ try:
 except ImportError:
     import simplejson as json
 
-_fp_solr = solr.SolrConnectionPool("http://localhost:8502/solr/fp")
+_fp_solr = solr.SolrConnectionPool("http://localhost:8983/solr/fp")
 _hexpoch = int(time.time() * 1000)
 logger = logging.getLogger(__name__)
 _tyrant_address = ['localhost', 1978]

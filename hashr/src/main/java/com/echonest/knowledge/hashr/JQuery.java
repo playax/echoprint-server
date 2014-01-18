@@ -1,13 +1,5 @@
 package com.echonest.knowledge.hashr;
 
-import org.apache.solr.client.solrj.SolrRequest;
-import org.apache.solr.client.solrj.SolrServer;
-import org.apache.solr.client.solrj.impl.CommonsHttpSolrServer;
-import org.apache.solr.client.solrj.request.QueryRequest;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.params.CommonParams;
-import org.apache.solr.common.params.ModifiableSolrParams;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.net.MalformedURLException;
@@ -15,6 +7,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.apache.solr.client.solrj.SolrRequest;
+import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.request.QueryRequest;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.params.CommonParams;
+import org.apache.solr.common.params.ModifiableSolrParams;
 
 /**
  * A SolrJ query interface.
@@ -34,13 +34,14 @@ public class JQuery implements Runnable {
 
     public JQuery(List<String> l, String solr, String path) throws
             MalformedURLException {
-        this.solr = new CommonsHttpSolrServer(solr);
+		this.solr = new HttpSolrServer(solr);
         this.path = path;
         logger.info(String.format("path: %s", path));
         this.l = l;
     }
 
-    public void run() {
+    @Override
+		public void run() {
         int n = 0;
         for(String q : l) {
             ModifiableSolrParams params = new ModifiableSolrParams();
