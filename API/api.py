@@ -29,7 +29,6 @@ urls = (
 class ingest:
     def POST(self):
         params = web.input(track_id="default", fp_code="", artist=None, release=None, track=None, length=None, codever=None, source=None, genre=None, bitrate=None, sample_rate=None)
-        print params
         if params.track_id == "default":
             track_id = fp.new_track_id()
         else:
