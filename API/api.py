@@ -28,7 +28,8 @@ urls = (
 
 class ingest:
     def POST(self):
-        params = web.input(track_id="default", fp_code="", artist=None, release=None, track=None, length=None, codever=None)
+        params = web.input(track_id="default", fp_code="", artist=None, release=None, track=None, length=None, codever=None, source=None, genre=None, bitrate=None, sample_rate=None)
+        print params
         if params.track_id == "default":
             track_id = fp.new_track_id()
         else:
@@ -51,6 +52,11 @@ class ingest:
         if params.artist: data["artist"] = params.artist
         if params.release: data["release"] = params.release
         if params.track: data["track"] = params.track
+        if params.source: data["source"] = params.source
+        if params.genre: data["genre"] = params.genre
+        if params.bitrate: data["bitrate"] = params.bitrate
+        if params.sample_rate: data["sample_rate"] = params.sample_rate
+
         fp.ingest(data, do_commit=True, local=False)
 
         return json.dumps({"track_id":track_id, "status":"ok"})

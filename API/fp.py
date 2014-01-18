@@ -557,6 +557,10 @@ def split_codes(fp):
         if "track" in fp: segment["track"] = fp["track"]
         if "source" in fp: segment["source"] = fp["source"]
         if "import_date" in fp: segment["import_date"] = fp["import_date"]
+        if "genre" in fp: segment["genre"] = fp["genre"]
+        if "bitrate" in fp: segment["bitrate"] = fp["bitrate"]
+        if "sample_rate" in fp: segment["sample_rate"] = fp["sample_rate"]
+
         ret.append(segment)
     return ret
 
