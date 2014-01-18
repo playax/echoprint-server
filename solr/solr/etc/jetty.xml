@@ -22,7 +22,7 @@
     <!-- Server Thread Pool                                          -->
     <!-- =========================================================== -->
     <Set name="ThreadPool">
-      <!-- Default bounded blocking threadpool 
+      <!-- Default bounded blocking threadpool
       -->
       <New class="org.mortbay.thread.BoundedThreadPool">
         <Set name="minThreads">10</Set>
@@ -30,7 +30,7 @@
         <Set name="maxThreads">10000</Set>
       </New>
 
-      <!-- Optional Java 5 bounded threadpool with job queue 
+      <!-- Optional Java 5 bounded threadpool with job queue
       <New class="org.mortbay.thread.concurrent.ThreadPool">
         <Arg type="int">0</Arg>
         <Set name="corePoolSize">10</Set>
@@ -49,14 +49,15 @@
 
     <!-- Use this connector for many frequently idle connections
          and for threadless continuations.
-   -->     
+   -->
     <Call name="addConnector">
       <Arg>
           <New class="org.mortbay.jetty.nio.SelectChannelConnector">
             <Set name="port"><SystemProperty name="jetty.port" default="8502"/></Set>
             <Set name="maxIdleTime">30000</Set>
-            <Set name="Acceptors">2</Set>
+            <Set name="Acceptors">100</Set>
             <Set name="confidentialPort">8443</Set>
+            <Set name="headerBufferSize">65500</Set>
           </New>
       </Arg>
     </Call>
@@ -82,7 +83,7 @@
     <!-- see jetty-ssl.xml to add an ssl connector. use                  -->
     <!-- java -jar start.jar etc/jetty.xml etc/jetty-ssl.xml             -->
     <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-    
+
     <!-- =========================================================== -->
     <!-- Set up global session ID manager                            -->
     <!-- =========================================================== -->
@@ -95,7 +96,7 @@
     -->
 
     <!-- =========================================================== -->
-    <!-- Set handler Collection Structure                            --> 
+    <!-- Set handler Collection Structure                            -->
     <!-- =========================================================== -->
     <Set name="handler">
       <New id="Handlers" class="org.mortbay.jetty.handler.HandlerCollection">
@@ -114,7 +115,7 @@
         </Set>
       </New>
     </Set>
-    
+
     <!-- =========================================================== -->
     <!-- Configure the context deployer                              -->
     <!-- A context deployer will deploy contexts described in        -->
