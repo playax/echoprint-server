@@ -1,5 +1,12 @@
 package com.echonest.knowledge.hashr;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.PriorityQueue;
+import java.util.Set;
+import java.util.logging.Logger;
+
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
@@ -14,13 +21,6 @@ import org.apache.solr.search.DocList;
 import org.apache.solr.search.DocSlice;
 import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.util.SolrPluginUtils;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.PriorityQueue;
-import java.util.Set;
-import java.util.logging.Logger;
 
 /**
  * A query component that takes a number of fingerprint hashes as query terms
@@ -79,16 +79,8 @@ public class HashQueryComponent extends SearchComponent {
         //
         // Get the terms and offsets.
         String[] terms = new String[half];
-        int[] offsets = new int[half];
         for(int i = 0, j = 0; i < qs.length; i += 2, j++) {
             terms[j] = qs[i];
-            try {
-                offsets[j] = Integer.parseInt(qs[i + 1]);
-            } catch(NumberFormatException ex) {
-                throw new SolrException(SolrException.ErrorCode.BAD_REQUEST,
-                        String.format("Hash %s has non-integer offset %s",
-                        qs[i], qs[i + 1]));
-            }
         }
 
 
@@ -176,7 +168,7 @@ public class HashQueryComponent extends SearchComponent {
         
         int[] docs = new int[32];
         int[] freqs = new int[32];
-        int[] alld = new int[2048];
+        int[] alld = new int[65535];
         int base = 0;
         int nHits = 0;
         for(IndexReader sub : reader.getSequentialSubReaders()) {

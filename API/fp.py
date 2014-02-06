@@ -162,7 +162,7 @@ def best_match_for_query(code_string, elbow=10, local=False):
     code_len = len(code_string.split(" ")) / 2
 
     # Query the FP flat directly.
-    response = query_fp(code_string, rows=30, local=local, get_data=True)
+    response = query_fp(code_string, rows=10, local=local, get_data=False)
     logger.debug("solr qtime is %d" % (response.header["QTime"]))
 
     if len(response.results) == 0:
