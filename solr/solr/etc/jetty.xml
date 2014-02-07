@@ -55,7 +55,7 @@
           <New class="org.mortbay.jetty.nio.SelectChannelConnector">
             <Set name="port"><SystemProperty name="jetty.port" default="8502"/></Set>
             <Set name="maxIdleTime">30000</Set>
-            <Set name="Acceptors">100</Set>
+            <Set name="Acceptors">50</Set>
             <Set name="confidentialPort">8443</Set>
             <Set name="headerBufferSize">65500</Set>
           </New>

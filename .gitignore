@@ -3,3 +3,7 @@ solr/solr/data/
 *.pyc
 *.swp
 *.log
+.idea/
+**/target/
+*.iml
+
