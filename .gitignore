@@ -1,9 +1,14 @@
 solr/solr/logs/
 solr/solr/data/
+solr/solr/solr/index/
+solr/solr/solr/spellchecker
 *.pyc
 *.swp
 *.log
 .idea/
 **/target/
 *.iml
-
+.classpath
+.project
+.settings
+.DS_Store
