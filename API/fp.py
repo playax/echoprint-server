@@ -24,10 +24,13 @@ try:
 except ImportError:
     import simplejson as json
 
-_fp_solr = solr.SolrConnectionPool("http://localhost:8502/solr/fp")
+server = "192.168.1.7"
+#server = "127.0.0.1"
+
+_fp_solr = solr.SolrConnectionPool("http://" + server + ":8502/solr/fp")
 _hexpoch = int(time.time() * 1000)
 logger = logging.getLogger(__name__)
-_tyrant_address = ['localhost', 1978]
+_tyrant_address = [server, 1978]
 _tyrant = None
 _tyrant_lock = None
 
