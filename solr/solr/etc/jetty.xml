@@ -192,13 +192,28 @@
       <Set name="requestLog">
         <New id="RequestLogImpl" class="org.mortbay.jetty.NCSARequestLog">
           <Arg><SystemProperty name="jetty.logs" default="./logs"/>/yyyy_mm_dd.request.log</Arg>
-          <Set name="retainDays">90</Set>
+          <Set name="retainDays">30</Set>
           <Set name="append">true</Set>
           <Set name="extended">false</Set>
           <Set name="LogTimeZone">GMT</Set>
         </New>
       </Set>
     </Ref>
+		
+    <New id="ServerLog" class="java.io.PrintStream">
+        <Arg>
+            <New class="org.mortbay.util.RolloverFileOutputStream">
+                <Arg><SystemProperty name="jetty.logs" default="./logs/"/>yyyy_mm_dd.jetty.log</Arg>
+                <Arg type="boolean">false</Arg>
+                <Arg type="int">7</Arg>
+                <Arg><Call class="java.util.TimeZone" name="getTimeZone"><Arg>GMT</Arg></Call></Arg>
+                <Get id="ServerLogName" name="datedFilename"/>
+            </New>
+        </Arg>
+    </New>
+    <Call class="java.lang.System" name="setErr"><Arg><Ref id="ServerLog"/></Arg></Call>
+    <Call class="java.lang.System" name="setOut"><Arg><Ref id="ServerLog"/></Arg></Call>
+		
 
     <!-- =========================================================== -->
     <!-- extra options                                               -->
