@@ -479,7 +479,6 @@ def delete(track_ids, do_commit=True, local=False):
     try:
         get_tyrant_lock().acquire()
         get_tyrant().multi_del(track_ids)
-        get_tyrant_lock().release()
     except KeyError:
         pass
     finally:
