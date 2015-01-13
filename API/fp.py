@@ -198,9 +198,11 @@ def best_match_for_query(code_string, elbow=10, local=False):
     if local:
         tcodes = [_fake_solr["store"][t] for t in trackids]
     else:
-        get_tyrant_lock().acquire()
-        tcodes = get_tyrant().multi_get(trackids)
-        get_tyrant_lock().release()
+        try:
+            get_tyrant_lock().acquire()
+            tcodes = get_tyrant().multi_get(trackids)
+        finally:
+            get_tyrant_lock().release()
 
     # For each result compute the "actual score" (based on the histogram matching)
     for (i, r) in enumerate(response.results):
@@ -616,9 +618,11 @@ def ingest(fingerprint_list, do_commit=True, local=False, split=True):
     with solr.pooled_connection(_fp_solr) as host:
         host.add_many(docs)
 
-    get_tyrant_lock().acquire()
-    get_tyrant().multi_set(codes)
-    get_tyrant_lock().release()
+    try:
+        get_tyrant_lock().acquire()
+        get_tyrant().multi_set(codes)
+    finally:
+        get_tyrant_lock().release()
 
     if do_commit:
         commit()
@@ -646,10 +650,12 @@ def query_fp(code_string, rows=15, local=False, get_data=False):
 def fp_code_for_track_id(track_id, local=False):
     if local:
         return local_fp_code_for_track_id(track_id)
-
-    get_tyrant_lock().acquire()
-    ret = get_tyrant().get(track_id.encode("utf-8"))
-    get_tyrant_lock().release()
+    ret = ""
+    try:
+        get_tyrant_lock().acquire()
+        ret = get_tyrant().get(track_id.encode("utf-8"))
+    finally:
+        get_tyrant_lock().release()
     return ret
 
 def new_track_id():
