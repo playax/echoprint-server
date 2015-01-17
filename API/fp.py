@@ -615,14 +615,14 @@ def ingest(fingerprint_list, do_commit=True, local=False, split=True):
     if local:
         return local_ingest(docs, codes)
 
-    with solr.pooled_connection(_fp_solr) as host:
-        host.add_many(docs)
-
     try:
         get_tyrant_lock().acquire()
         get_tyrant().multi_set(codes)
     finally:
         get_tyrant_lock().release()
+
+    with solr.pooled_connection(_fp_solr) as host:
+        host.add_many(docs)
 
     if do_commit:
         commit()
