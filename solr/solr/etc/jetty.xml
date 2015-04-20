@@ -205,7 +205,7 @@
             <New class="org.mortbay.util.RolloverFileOutputStream">
                 <Arg><SystemProperty name="jetty.logs" default="./logs/"/>yyyy_mm_dd.jetty.log</Arg>
                 <Arg type="boolean">false</Arg>
-                <Arg type="int">7</Arg>
+                <Arg type="int">3</Arg>
                 <Arg><Call class="java.util.TimeZone" name="getTimeZone"><Arg>GMT</Arg></Call></Arg>
                 <Get id="ServerLogName" name="datedFilename"/>
             </New>
