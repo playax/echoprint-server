@@ -126,6 +126,49 @@ public class IntIntMap
         }
     }
 
+    public void addOne( final int key )
+    {
+        int ptr = ( Tools.phiMix( key ) & m_mask) << 1;
+        int k = m_data[ptr];
+        if ( k == FREE_KEY ) //end of chain already
+        {
+            m_data[ ptr ] = key;
+            m_data[ ptr + 1 ] = 1;
+            if ( m_size >= m_threshold )
+                rehash( m_data.length * 2 ); //size is set inside
+            else
+                ++m_size;
+            return;
+        }
+        else if ( k == key ) //we check FREE prior to this call
+        {
+            m_data[ ptr + 1 ]++;
+            return;
+        }
+
+        while ( true )
+        {
+            ptr = ( ptr + 2 ) & m_mask2; //that's next index calculation
+            k = m_data[ ptr ];
+            if ( k == FREE_KEY )
+            {
+                m_data[ ptr ] = key;
+                m_data[ ptr + 1 ] = 1;
+                if ( m_size >= m_threshold )
+                    rehash( m_data.length * 2 ); //size is set inside
+                else
+                    ++m_size;
+                return;
+            }
+            else if ( k == key )
+            {
+                m_data[ ptr + 1 ]++;
+                return;
+            }
+        }
+    }
+
+
     public int remove( final int key )
     {
         if ( key == FREE_KEY )
