@@ -1,10 +1,7 @@
 package com.echonest.knowledge.hashr;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.PriorityQueue;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
 
 import org.apache.lucene.index.IndexReader;
@@ -171,6 +168,7 @@ public class HashQueryComponent extends SearchComponent {
         int[] alld = new int[65535];
         int base = 0;
         int nHits = 0;
+        IntIntMap countMap = new IntIntMap(6000000, 0.9f);
         for(IndexReader sub : reader.getSequentialSubReaders()) {
             int p = 0;
             for(String t : termSet) {
@@ -178,39 +176,29 @@ public class HashQueryComponent extends SearchComponent {
                 int pos = td.read(docs, freqs);
                 while(pos != 0) {
                     for(int i = 0; i < pos; i++) {
-                        if(p >= alld.length) {
-                            alld = Arrays.copyOf(alld, alld.length * 2);
+                        int docId = docs[i] + base;
+                        int count = countMap.get(docId);
+                        if (count == 0) {
+                           countMap.put(docId, 1);
+                        } else {
+                           countMap.put(docId, count + 1);
                         }
-                        alld[p++] = docs[i];
                     }
                     pos = td.read(docs, freqs);
                 }
                 td.close();
             }
 
-            //
-            // We only need to process this sub if we got some hits.
-            if(p > 0) {
-                Arrays.sort(alld, 0, p);
-                int curr = alld[0];
-                int count = 0;
-                for(int i = 0; i < p; i++) {
-                    int doc = alld[i];
-                    if(doc == curr) {
-                        count++;
-                    } else {
-                        nHits++;
-                        curr += base;
-                        heapCheck(h, hsize, curr, count);
-                        curr = doc;
-                        count = 1;
-                    }
-                }
-                //
-                // Handle the last document that was collected.
-                heapCheck(h, hsize, curr+base, count);
-            }
             base += sub.maxDoc();
+        }
+
+        nHits = countMap.size();
+        int[] data = countMap.getData();
+        for (int i = 0; i < data.length - 1; i = i + 2) {
+            int key = data[i];
+            if (key != 0) {
+                heapCheck(h, hsize, key, data[i+1]);
+            }
         }
 
         int outSize = Math.min(hsize, h.size());
