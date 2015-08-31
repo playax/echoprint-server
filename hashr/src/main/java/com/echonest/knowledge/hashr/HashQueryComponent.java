@@ -166,18 +166,16 @@ public class HashQueryComponent extends SearchComponent {
         int[] docs = new int[32];
         int[] freqs = new int[32];
         int base = 0;
-        int max = 0;
-        IntIntMap countMap = new IntIntMap(6000000, 0.9f);
+
+        int[] countMap = new int[10000000];
+
         for(IndexReader sub : reader.getSequentialSubReaders()) {
             for(String t : termSet) {
                 TermDocs td = sub.termDocs(new Term("fp", t));
                 int pos = td.read(docs, freqs);
                 while(pos != 0) {
                     for(int i = 0; i < pos; i++) {
-                        countMap.addOne(docs[i] + base);
-                        if (docs[i] + base > max) {
-                          max = docs[i] + base;
-                        }
+                        countMap[docs[i] + base]++;
                     }
                     pos = td.read(docs, freqs);
                 }
@@ -186,14 +184,13 @@ public class HashQueryComponent extends SearchComponent {
 
             base += sub.maxDoc();
         }
-        System.out.println("MAX: " + max);
 
-        int nHits = countMap.size();
-        int[] data = countMap.getData();
-        for (int i = 0; i < data.length - 1; i = i + 2) {
-            int key = data[i];
-            if (key != 0) {
-                heapCheck(h, hsize, key, data[i+1]);
+        int nHits = 0;
+
+        for (int i = 0; i < countMap.length; i++) {
+            if (countMap[i] > 0){
+                nHits++;
+                heapCheck(h, hsize, i, countMap[i]);
             }
         }
 
