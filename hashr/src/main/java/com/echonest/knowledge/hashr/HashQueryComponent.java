@@ -90,7 +90,7 @@ public class HashQueryComponent extends SearchComponent {
         rb.setResult(qr);
         rsp.add("response", rb.getResults().docList);
         rsp.getToLog().add("hits", rb.getResults().docList.matches());
-        
+
         SolrPluginUtils.optimizePreFetchDocs(rb.getResults().docList, rb.
                 getQuery(), req, rsp);
     }
@@ -162,10 +162,11 @@ public class HashQueryComponent extends SearchComponent {
         //
         // Uniquify the query terms before processing to avoid multiple counts.
         termSet.addAll(Arrays.asList(queryTerms));
-        
+
         int[] docs = new int[32];
         int[] freqs = new int[32];
         int base = 0;
+        int max = 0;
         IntIntMap countMap = new IntIntMap(6000000, 0.9f);
         for(IndexReader sub : reader.getSequentialSubReaders()) {
             for(String t : termSet) {
@@ -174,6 +175,9 @@ public class HashQueryComponent extends SearchComponent {
                 while(pos != 0) {
                     for(int i = 0; i < pos; i++) {
                         countMap.addOne(docs[i] + base);
+                        if (docs[i] + base > max) {
+                          max = docs[i] + base;
+                        }
                     }
                     pos = td.read(docs, freqs);
                 }
@@ -182,6 +186,7 @@ public class HashQueryComponent extends SearchComponent {
 
             base += sub.maxDoc();
         }
+        System.out.println("MAX: " + max);
 
         int nHits = countMap.size();
         int[] data = countMap.getData();
