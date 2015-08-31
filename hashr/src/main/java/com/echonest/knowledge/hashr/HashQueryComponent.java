@@ -1,9 +1,11 @@
 package com.echonest.knowledge.hashr;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
@@ -153,6 +155,24 @@ public class HashQueryComponent extends SearchComponent {
      * @param rb the response builder
      * @throws java.io.IOException
      */
+
+    static {
+        try {
+            arraySize = Integer.parseInt(FileUtils.readFileToString(new File("arraySize.txt")));
+        } catch (IOException e) {
+            arraySize = 10000000;
+        }
+    }
+
+    private static int arraySize;
+
+    private static void increaseArraySize() throws IOException {
+        arraySize *= 1.2;
+        System.out.println("Increasing Array Size to " + arraySize);
+        FileUtils.writeStringToFile(new File("arraySize.txt"), arraySize + "");
+    }
+
+
     private DocList eval(IndexReader reader, String[] queryTerms,
             ResponseBuilder rb, int rows, int start) throws IOException {
         int hsize = start + rows;
@@ -167,22 +187,27 @@ public class HashQueryComponent extends SearchComponent {
         int[] freqs = new int[32];
         int base = 0;
 
-        int[] countMap = new int[10000000];
+        int[] countMap = new int[arraySize];
 
-        for(IndexReader sub : reader.getSequentialSubReaders()) {
-            for(String t : termSet) {
-                TermDocs td = sub.termDocs(new Term("fp", t));
-                int pos = td.read(docs, freqs);
-                while(pos != 0) {
-                    for(int i = 0; i < pos; i++) {
-                        countMap[docs[i] + base]++;
+        try {
+            for (IndexReader sub : reader.getSequentialSubReaders()) {
+                for (String t : termSet) {
+                    TermDocs td = sub.termDocs(new Term("fp", t));
+                    int pos = td.read(docs, freqs);
+                    while (pos != 0) {
+                        for (int i = 0; i < pos; i++) {
+                            countMap[docs[i] + base]++;
+                        }
+                        pos = td.read(docs, freqs);
                     }
-                    pos = td.read(docs, freqs);
+                    td.close();
                 }
-                td.close();
-            }
 
-            base += sub.maxDoc();
+                base += sub.maxDoc();
+            }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            increaseArraySize();
+            return eval(reader, queryTerms, rb, rows, start);
         }
 
         int nHits = 0;
