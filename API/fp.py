@@ -29,6 +29,7 @@ tyrant_server = "127.0.0.1"
 
 _fp_solr = solr.SolrConnectionPool("http://" + solr_server + ":8502/solr/fp")
 _hexpoch = int(time.time() * 1000)
+logging.basicConfig(filename='example.log',level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 _tyrant_address = [tyrant_server, 1978]
 _tyrant = None
@@ -173,6 +174,7 @@ def best_match_for_query(code_string, elbow=10, local=False):
 
     # If we just had one result, make sure that it is close enough. We rarely if ever have a single match so this is not helpful (and probably doesn't work well.)
     top_match_score = int(response.results[0]["score"])
+    logger.debug("solr response: %s" % response.results) 
     if len(response.results) == 1:
         trackid = response.results[0]["track_id"]
         trackid = trackid.split("-")[0] # will work even if no `-` in trid
@@ -185,7 +187,7 @@ def best_match_for_query(code_string, elbow=10, local=False):
     # If the scores are really low (less than 5% of the query length) then say no results
     if top_match_score < code_len * 0.05:
         return Response(Response.MULTIPLE_BAD_HISTOGRAM_MATCH, qtime = response.header["QTime"], tic=tic)
-
+    logger.debug("went to phase two top_match_score: %d code_len: %d" % (top_match_score,code_len))
     # Not a strong match, so we look up the codes in the keystore and compute actual matches...
 
     # Get the actual score for all responses
@@ -256,6 +258,7 @@ def best_match_for_query(code_string, elbow=10, local=False):
     meta = metadata_for_track_id(trackid, local=local)
 
     if actual_score_top_score < code_len * 0.05:
+        logger.debug("MULTIPLE_BAD_HISTOGRAM_MATCH_2")
         return Response(Response.MULTIPLE_BAD_HISTOGRAM_MATCH, qtime = response.header["QTime"], tic=tic)
     else:
         # If the actual score went down it still could be close enough, so check for that
@@ -263,14 +266,19 @@ def best_match_for_query(code_string, elbow=10, local=False):
 
             #first and second place with same score means that probably it is the same track. return the first then
             if (actual_score_top_score == actual_score_2nd_score):
+                logger.debug("MULTIPLE_GOOD_MATCH_HISTOGRAM_DECREASED_2")
                 return Response(Response.MULTIPLE_GOOD_MATCH_HISTOGRAM_DECREASED, TRID=trackid, score=actual_score_top_score, qtime=response.header["QTime"], tic=tic, metadata=meta)
 
             if (actual_score_top_score - actual_score_2nd_score) >= (actual_score_top_score / 3):  # for examples [10,4], 10-4 = 6, which >= 5, so OK
+                logger.debug("MULTIPLE_GOOD_MATCH_HISTOGRAM_DECREASED_3")
                 return Response(Response.MULTIPLE_GOOD_MATCH_HISTOGRAM_DECREASED, TRID=trackid, score=actual_score_top_score, qtime=response.header["QTime"], tic=tic, metadata=meta)
             else:
+                logger.debug("top score: %d, second top score: %d" % (actual_score_top_score, actual_score_2nd_score))
+                logger.debug("MULTIPLE_BAD_HISTOGRAM_MATCH_3")
                 return Response(Response.MULTIPLE_BAD_HISTOGRAM_MATCH, qtime = response.header["QTime"], tic=tic)
         else:
             # If the actual score was not close enough, then no match.
+            logger.debug("MULTIPLE_BAD_HISTOGRAM_MATCH_4")
             return Response(Response.MULTIPLE_BAD_HISTOGRAM_MATCH, qtime=response.header["QTime"], tic=tic)
 
 def actual_matches(code_string_query, code_string_match, slop = 2, elbow = 10):
